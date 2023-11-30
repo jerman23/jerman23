@@ -1,0 +1,188 @@
+version: '3'
+
+services:
+
+  earnapp:
+    container_name: earnapp
+    image: fazalfarhan01/earnapp:lite
+    environment:
+      - EARNAPP_UUID=$EARNAPP_DEVICE_UUID
+    volumes:
+      - earnapp-data:/etc/earnapp
+    restart: always
+    cpus: ${APP_CPU_LIMIT_LITTLE}
+    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+    mem_limit: ${APP_MEM_LIMIT_LITTLE}
+
+  honeygain:
+    container_name: honeygain
+    image: honeygain/honeygain:latest
+    environment:
+      - HONEYGAIN_DUMMY=''
+    command: -tou-accept -email $HONEYGAIN_EMAIL -pass $HONEYGAIN_PASSWD -device $DEVICE_NAME
+    restart: always
+    cpus: ${APP_CPU_LIMIT_LITTLE}
+    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+    mem_limit: ${APP_MEM_LIMIT_LITTLE}
+
+  iproyal:
+    container_name: iproyal
+    image: iproyal/pawns-cli:latest
+    environment:
+      - IPROYALPAWNS_DUMMY=''
+    command: -accept-tos -email=$IPROYALPAWNS_EMAIL -password=$IPROYALPAWNS_PASSWD -device-name=$DEVICE_NAME
+    restart: always
+    cpus: ${APP_CPU_LIMIT_LITTLE}
+    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+    mem_limit: ${APP_MEM_LIMIT_LITTLE}
+
+  packetstream:
+    container_name: packetstream
+    image: packetstream/psclient:latest
+    environment:
+      - CID=$PACKETSTREAM_CID
+    restart: always
+    cpus: ${APP_CPU_LIMIT_LITTLE}
+    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+    mem_limit: ${APP_MEM_LIMIT_LITTLE}
+
+  traffmonetizer:
+    container_name: traffmonetizer
+    image: traffmonetizer/cli_v2:latest
+    environment:
+      - TRAFFMONETIZER_DUMMY=''
+    command: start accept status --token $TRAFFMONETIZER_TOKEN --device-name $DEVICE_NAME
+    restart: always
+    cpus: ${APP_CPU_LIMIT_LITTLE}
+    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+    mem_limit: ${APP_MEM_LIMIT_LITTLE}
+
+  repocket:
+    container_name: repocket
+    image: repocket/repocket:latest
+    environment:
+      - RP_EMAIL=$REPOCKET_EMAIL
+      - RP_API_KEY=$REPOCKET_APIKEY
+    restart: always
+    cpus: ${APP_CPU_LIMIT_MEDIUM}
+    mem_reservation: ${APP_MEM_RESERV_MEDIUM}
+    mem_limit: ${APP_MEM_LIMIT_MEDIUM}
+
+  earnfm:
+    container_name: earnfm
+    image: earnfm/earnfm-client:latest
+    environment:
+      - EARNFM_TOKEN=$EARNFM_APIKEY
+    restart: always
+    cpus: ${APP_CPU_LIMIT_MEDIUM}
+    mem_reservation: ${APP_MEM_RESERV_MEDIUM}
+    mem_limit: ${APP_MEM_LIMIT_MEDIUM}
+
+  proxyrack:
+    container_name: proxyrack
+    image: proxyrack/pop:latest
+    environment:
+      - api_key=$PROXYRACK_APIKEY
+      - device_name=$DEVICE_NAME
+      - UUID=$PROXYRACK_DEVICE_UUID
+    restart: always
+    cpus: ${APP_CPU_LIMIT_BIG}
+    mem_reservation: ${APP_MEM_RESERV_BIG}
+    mem_limit: ${APP_MEM_LIMIT_BIG}
+
+  proxylite:
+    container_name: proxylite
+    image: proxylite/proxyservice:latest
+    environment:
+      - USER_ID=$PROXYLITE_USER_ID
+    restart: always
+    cpus: ${APP_CPU_LIMIT_MEDIUM}
+    mem_reservation: ${APP_MEM_RESERV_MEDIUM}
+    mem_limit: ${APP_MEM_LIMIT_MEDIUM}
+
+  bitping:
+    container_name: bitping
+    image: bitping/bitping-node:latest
+    environment:
+      - BITPING_DUMMY=''
+    volumes:
+      - ./.data/.bitping:/root/.bitping
+    restart: always
+    cpus: ${APP_CPU_LIMIT_BIG}
+    mem_reservation: ${APP_MEM_RESERV_BIG}
+    mem_limit: ${APP_MEM_LIMIT_BIG}
+
+  mysterium:
+    container_name: mysterium
+    image: mysteriumnetwork/myst:latest
+    environment:
+      - MYSTNODE_DUMMY=''
+    command: service --agreed-terms-and-conditions
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 4449:4449
+    volumes:
+      - ./.data/mysterium-node:/var/lib/mysterium-node
+    restart: always
+    cpus: ${APP_CPU_LIMIT_BIG}
+    mem_reservation: ${APP_MEM_RESERV_BIG}
+    mem_limit: ${APP_MEM_LIMIT_BIG}
+
+  peer2profit:
+    container_name: peer2profit
+    image: mrcolorrain/peer2profit:latest
+    environment:
+      - P2P_EMAIL=$PEER2PROFIT_EMAIL
+    ports:
+      - 5901:5900
+    restart: always
+    cpus: ${APP_CPU_LIMIT_HUGE}
+    mem_reservation: ${APP_MEM_RESERV_HUGE}
+    mem_limit: ${APP_MEM_LIMIT_HUGE}
+
+  tun2socks:
+    image: xjasonlyu/tun2socks
+    container_name: tun2socks
+    restart: always
+    command: ["/bin/sh", "-c", "echo 'nameserver 1.1.1.1\nnameserver 8.8.8.8' > /etc/resolv.conf && ip rule add iif lo ipproto udp dport 53 lookup main && ip rule add iif lo ipproto udp dport 3478 lookup main"]
+    environment:
+      - LOGLEVEL=info
+      - PROXY=$PROXY_STACK
+    volumes:
+      - '/dev/net/tun:/dev/net/tun'
+    cap_add:
+      - NET_ADMIN
+    cpus: ${APP_CPU_LIMIT_BIG}
+    mem_reservation: ${APP_MEM_RESERV_BIG}
+    mem_limit: ${APP_MEM_LIMIT_BIG}
+
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_POLL_INTERVAL=14400
+      - WATCHTOWER_ROLLING_RESTART=true
+      - WATCHTOWER_NO_STARTUP_MESSAGE=true
+      - WATCHTOWER_CLEANUP=true
+    restart: always
+    cpus: ${APP_CPU_LIMIT_MEDIUM}
+    mem_reservation: ${APP_MEM_RESERV_MEDIUM}
+    mem_limit: ${APP_MEM_LIMIT_MEDIUM}
+
+  webdashboard:
+    container_name: webdashboard
+    image: nginx:alpine-slim
+    volumes:
+      - ./.resources/.www:/usr/share/nginx/html:ro
+    ports:
+      - ${DASHBOARD_PORT}:80
+    restart: always
+    cpus: ${APP_CPU_LIMIT_LITTLE}
+    mem_reservation: ${APP_MEM_RESERV_LITTLE}
+    mem_limit: ${APP_MEM_LIMIT_LITTLE}
+
+volumes:
+  earnapp-data:
